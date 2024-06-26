@@ -3,7 +3,7 @@ const MONGO_DB = "urls";
 const MONGO_COLLECTION = "routes";
 
 function getMongoConnectionString() {
-  let uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_SERVER}`;
+  let uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_SERVER}:27017/urlshortener?authSource=admin`;
   if (process.env.MONGO_VERSION === "3.6") uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_SERVER}/${MONGO_DB}?useUnifiedTopology=true`
   return uri;
 }

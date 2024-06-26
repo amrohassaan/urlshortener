@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
-const { MongoClient } = require("mongodb");
+const { MongoClient } = require("mongodb").MongoClient;
 
 const uri = require("../utils/mongoConn").getMongoConnectionString();
-const client = new MongoClient(uri);
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 /* GET home page. */
 router.get("/", function(req, res, next) {
