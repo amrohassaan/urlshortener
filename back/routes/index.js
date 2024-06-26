@@ -1,31 +1,22 @@
-var express = require("express");
-var router = express.Router();
-const { MongoClient } = require("mongodb").MongoClient;
+const express = require('express');
+const router = express.Router();
+const { connect, client } = require('../utils/mongoConn');
 
-const uri = require("../utils/mongoConn").getMongoConnectionString();
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+(async () => {
+    await connect();
+})();
 
-/* GET home page. */
-router.get("/", function(req, res, next) {
-  res.send({msg: "Hello"}).status(200);
-});
-
-router.get("/health", async (req, res) => {
-  let dbStatus = false;
-  console.log("Testing database connection");
-  await client.connect().then(() => {
-    console.log("Connected");
-    dbStatus = true;
-  }).catch(e => {
-    console.log("Failed to connect");
-    console.log(e);
-    dbStatus = false;
-  });
-  console.log(`Database status is ${dbStatus}`);
-  res.send({
-    server: true,
-    database: dbStatus
-  }).status(200);
+router.get('/', async (req, res) => {
+    try {
+        const db = client.db();
+        const collection = db.collection('urls');
+        const urls = await collection.find().toArray();
+        res.json(urls);
+    } catch (err) {
+        console.error('Failed to fetch URLs', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 module.exports = router;
+

@@ -1,35 +1,40 @@
-var express = require('express');
-var router = express.Router();
-const { MongoClient } = require("mongodb");
+const express = require('express');
+const router = express.Router();
+const { connect, client } = require('../utils/mongoConn');
 
-const MONGO_DB = require("../utils/mongoConn").getMongoDB();
-const MONGO_COLLECTION = require("../utils/mongoConn").getMongoCollection();
-const uri = require("../utils/mongoConn").getMongoConnectionString();
-console.log(`Connecting to client with url: ${uri}`);
+(async () => {
+    await connect();
+})();
 
-const client = new MongoClient(uri);
-
-router.get('/', async (req, res) => {
-  await client.connect();
-  const db = await client.db(MONGO_DB);
-  const collection = await  db.collection(MONGO_COLLECTION);
-  const routes = await collection.find().toArray();
-
-  res.send(routes).status(200);;
+router.post('/shorten', async (req, res) => {
+    try {
+        const db = client.db();
+        const collection = db.collection('urls');
+        const { originalUrl, shortUrl } = req.body;
+        await collection.insertOne({ originalUrl, shortUrl });
+        res.status(201).send('URL shortened successfully');
+    } catch (err) {
+        console.error('Failed to shorten URL', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
-router.post("/", async (req, res) => {
-  let document = {
-    route: req.body.route,
-    url: req.body.url
-  };
-  console.log("Adding document to DB", document);
-  await client.connect();
-  const db = await client.db(MONGO_DB);
-  const collection = await db.collection(MONGO_COLLECTION);
-  const result = await collection.insertOne(document);
-  console.log(result);
-  res.send(result).status(200);
+router.get('/:shortUrl', async (req, res) => {
+    try {
+        const db = client.db();
+        const collection = db.collection('urls');
+        const { shortUrl } = req.params;
+        const url = await collection.findOne({ shortUrl });
+        if (url) {
+            res.redirect(url.originalUrl);
+        } else {
+            res.status(404).send('URL not found');
+        }
+    } catch (err) {
+        console.error('Failed to fetch URL', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 module.exports = router;
+

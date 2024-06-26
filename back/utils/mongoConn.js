@@ -1,23 +1,16 @@
-const { MONGO_USER, MONGO_PASSWORD, MONGO_SERVER } = process.env;
-const MONGO_DB = "urls";
-const MONGO_COLLECTION = "routes";
+const { MongoClient } = require('mongodb');
+const uri = "mongodb://root:shorties@mongo:27017/urlshortener?authSource=admin";
 
-function getMongoConnectionString() {
-  let uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_SERVER}:27017/urlshortener?authSource=admin`;
-  if (process.env.MONGO_VERSION === "3.6") uri = `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_SERVER}/${MONGO_DB}?useUnifiedTopology=true`
-  return uri;
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+async function connect() {
+    try {
+        await client.connect();
+        console.log('Connected to MongoDB');
+    } catch (err) {
+        console.error('Failed to connect to MongoDB', err);
+    }
 }
 
-function getMongoDB() {
-  return MONGO_DB;
-}
+module.exports = { connect, client };
 
-function getMongoCollection() {
-  return MONGO_COLLECTION;
-}
-
-module.exports = {
-  getMongoConnectionString,
-  getMongoDB,
-  getMongoCollection
-}
